@@ -26,6 +26,7 @@ inertial imu(PORT10);
 smartdrive drive = smartdrive(leftMotor, rightMotor, imu, 319.19, 320, 320, mm, 1);
 
 controller Controller = controller(primary);
+controller Partner = controller(partner);
 
 // define your global instances of motors and other devices here
 
@@ -90,6 +91,10 @@ void usercontrol(void) {
   armMotor.setBrake(hold);
   beltMotor.setBrake(hold);
 
+  armMotor.setMaxTorque(50, percent);
+  armMotor.setVelocity(50, percent);
+  beltMotor.setVelocity(100, percent);
+
   while (1) {
     
     int axis2Pos = position(Controller.Axis2);
@@ -101,21 +106,18 @@ void usercontrol(void) {
     rightMotor.spin(forward);
     leftMotor.spin(forward);
 
-    if (Controller.ButtonR1.pressing()) {
-      armMotor.spin(forward);
-    } else if (Controller.ButtonR2.pressing()) {
-      armMotor.spin(reverse);
-    } else {
-      armMotor.stop();
-    }
+    int axis2PosPartner = position(Partner.Axis2);
+    armMotor.setVelocity(axis2PosPartner, percent);
 
-    if (Controller.ButtonL1.pressing()) {
-      beltMotor.spin(forward);
-    } else if (Controller.ButtonL2.pressing()) {
-      beltMotor.spin(reverse);
-    } else {
-      beltMotor.stop();
-    }
+    int axis3PosPartner = position(Partner.Axis3);
+    beltMotor.setVelocity(axis3PosPartner, percent);
+
+    armMotor.spin(forward);
+    beltMotor.spin(forward);
+
+    Brain.Screen.clearScreen();
+    Brain.Screen.setCursor(1, 1);
+    Brain.Screen.print("Arm Motor Temp: %d", armMotor.temperature());
     
 
     wait(20, msec); // Sleep the task for a short amount of time to
